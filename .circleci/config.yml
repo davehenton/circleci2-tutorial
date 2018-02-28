@@ -1,117 +1,117 @@
 
 # Set defaults for all jobs
 defaults: &defaults
- working_directory: ~/repo
- environment:
-   CC_TEST_REPORTER_ID: 77859a1b793667e400a5e282c99b9f53a68acd341ae02900c848aa44adea6cc0  
-   TZ: /usr/share/zoneinfo/America/New_York
- docker:
-   - image: circleci/node:carbon
+  working_directory: ~/repo
+  environment:
+    CC_TEST_REPORTER_ID: 77859a1b793667e400a5e282c99b9f53a68acd341ae02900c848aa44adea6cc0  
+    TZ: /usr/share/zoneinfo/America/New_York
+  docker:
+    - image: circleci/node:carbon
 
 version: 2
 jobs:
   setup:
-   <<: *defaults
-   steps:
-     - checkout
-     - restore_cache:
-         name: Restore cache
-         keys:
-           - cache-{{ .Branch }}-{{ checksum "package.json" }}
-           # fallback to using the latest cache if no exact match is found
-           - cache-{{ .Branch }}-
-           - cache-
-     - run:
-         name: Install dependencies
-         command: npm install
-     - run:
-         name: Install Code Climate Test Reporter
-         # inline BASH script that checks if the cc-test-reporter binary exists
-         # and downloads it and sets the executable bit if it doesn't
-         command: |
-           if [ ! -f cc-test-reporter ]; then curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter && chmod +x ./cc-test-reporter; fi
-     - save_cache:
-         name: Cache node_modules and Code Climate Test Reporter
-         paths:
-           - node_modules
-           - cc-test-reporter
-         key: cache-{{ .Branch }}-{{ checksum "package.json" }}
-     - persist_to_workspace:
-         root: ~/repo
-         paths:
-           - node_modules
-           - cc-test-reporter
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore cache
+          keys:
+            - cache-{{ .Branch }}-{{ checksum "package.json" }}
+            # fallback to using the latest cache if no exact match is found
+            - cache-{{ .Branch }}-
+            - cache-
+      - run:
+          name: Install dependencies
+          command: npm install
+      - run:
+          name: Install Code Climate Test Reporter
+          # inline BASH script that checks if the cc-test-reporter binary exists
+          # and downloads it and sets the executable bit if it doesn't
+          command: |
+            if [ ! -f cc-test-reporter ]; then curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter && chmod +x ./cc-test-reporter; fi
+      - save_cache:
+          name: Cache node_modules and Code Climate Test Reporter
+          paths:
+            - node_modules
+            - cc-test-reporter
+          key: cache-{{ .Branch }}-{{ checksum "package.json" }}
+      - persist_to_workspace:
+          root: ~/repo
+          paths:
+            - node_modules
+            - cc-test-reporter
 
   test:linters:
-   <<: *defaults
-   steps:
-     - checkout
-     - attach_workspace:
-         at: ~/repo
-     - run:
-         name: Run linters
-         command: |
-           npm run lint-js -- --max-warnings=0 && npm run lint-css
+    <<: *defaults
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/repo
+      - run:
+          name: Run linters
+          command: |
+            npm run lint-js -- --max-warnings=0 && npm run lint-css
   test:unit:
-   <<: *defaults
-   parallelism: 3
-   steps:
-     - checkout
-     - attach_workspace:
-         at: ~/repo
-     # CircleCI 2.0 no longer allows interpolation of env variables. This is the workaround:
-     # https://discuss.circleci.com/t/using-environment-variables-in-config-yml-not-working/14237
-     - run:
-         command: mkdir results
-     - run:
-         name: Set JEST_JUNIT_OUTPUT
-         command: echo 'export JEST_JUNIT_OUTPUT="results/junit-$CIRCLE_NODE_INDEX.xml"' >> $BASH_ENV
-     - run:
-         name: Run tests
-         # split tests by timing and then run npm test
-         command: |
-           circleci tests glob "src/**/*.test.js" | circleci tests split --split-by=timings | \
-           xargs npm test -- --testResultsProcessor="jest-junit"  --coverage
-     - persist_to_workspace:
-         root: ~/repo
-         paths:
-           - results
-           - coverage
+    <<: *defaults
+    parallelism: 3
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/repo
+      # CircleCI 2.0 no longer allows interpolation of env variables. This is the workaround:
+      # https://discuss.circleci.com/t/using-environment-variables-in-config-yml-not-working/14237
+      - run:
+          command: mkdir results
+      - run:
+          name: Set JEST_JUNIT_OUTPUT
+          command: echo 'export JEST_JUNIT_OUTPUT="results/junit-$CIRCLE_NODE_INDEX.xml"' >> $BASH_ENV
+      - run:
+          name: Run tests
+          # split tests by timing and then run npm test
+          command: |
+            circleci tests glob "src/**/*.test.js" | circleci tests split --split-by=timings | \
+            xargs npm test -- --testResultsProcessor="jest-junit"  --coverage
+      - persist_to_workspace:
+          root: ~/repo
+          paths:
+            - results
+            - coverage
   coverage:
-   <<: *defaults
-   steps:
-     - checkout
-     - attach_workspace:
-         at: ~/repo
-     - run:
-         name: Send Istanbul LCOV Results to Code Climate
-         command: |
-           ./cc-test-reporter sum-coverage coverage/codeclimate.*.json
-           ./cc-test-reporter upload-coverage
-     - run:
-         name: Merge junit results
-         command: |
-           mkdir junit && npm run junit-merge -- -d results -o junit/junit.xml
+    <<: *defaults
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/repo
+      - run:
+          name: Send Istanbul LCOV Results to Code Climate
+          command: |
+            ./cc-test-reporter sum-coverage coverage/codeclimate.*.json
+            ./cc-test-reporter upload-coverage
+      - run:
+          name: Merge junit results
+          command: |
+            mkdir junit && npm run junit-merge -- -d results -o junit/junit.xml
 
-     # Store Assets generated by npm test
-     - store_artifacts:
-         path: junit
-     - store_test_results:
-         path: junit
-     - store_artifacts:
-         path: coverage
+      # Store Assets generated by npm test
+      - store_artifacts:
+          path: junit
+      - store_test_results:
+          path: junit
+      - store_artifacts:
+          path: coverage
 
 workflows:
- version: 2
- setup-lint-test-and-collect:
-   jobs:
-     - setup
-     - test:linters:
-         requires:
-           - setup
-     - test:unit:
-         requires:
-           - setup
-     - coverage:
-         requires:
-           - test:unit
+  version: 2
+  setup-lint-test-and-collect:
+    jobs:
+      - setup
+      - test:linters:
+          requires:
+            - setup
+      - test:unit:
+          requires:
+            - setup
+      - coverage:
+          requires:
+            - test:unit
