@@ -8,8 +8,27 @@ defaults: &defaults
 
 version: 2
 jobs:
-  build:
-    <<: *defaults
-    steps:
-      - checkout
-      - run: echo "A first hello"
+ build:
+   <<: *defaults
+   steps:
+     - checkout
+     # Download and cache dependencies
+     - restore_cache:
+         name: Restore cache
+         keys:
+         - cache-{{ .Branch }}-{{ checksum "package.json" }}
+         # fallback to using the latest cache if no exact match is found
+         - cache-{{ .Branch }}-
+         - cache-
+     - run:
+         name: Install dependencies
+         command: npm install
+     - save_cache:
+         name: Cache node_modules
+         paths:
+           - node_modules
+         key: cache-{{ .Branch }}-{{ checksum "package.json" }}
+     - persist_to_workspace:
+         root: ~/repo
+         paths:
+           - node_modules
