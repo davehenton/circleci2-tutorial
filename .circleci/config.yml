@@ -1,0 +1,11 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/repo
+    environment:
+      TZ: /usr/share/zoneinfo/America/New_York
+    docker:
+      - image: circleci/node:carbon
+    steps:
+      - checkout
+      - run: echo "A first hello"
