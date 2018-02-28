@@ -72,6 +72,10 @@ jobs:
           command: |
             circleci tests glob "src/**/*.test.js" | circleci tests split --split-by=timings | \
             xargs npm test -- --testResultsProcessor="jest-junit"  --coverage
+      - run: 
+          name: Format coverage
+          command: |
+            ./cc-test-reporter format-coverage --output coverage/codeclimate.$CIRCLE_NODE_INDEX.json
       - persist_to_workspace:
           root: ~/repo
           paths:
