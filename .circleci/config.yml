@@ -49,9 +49,9 @@ jobs:
            npm run lint-js -- --max-warnings=0 && npm run lint-css
 workflows:
  version: 2
- setup-and-lint:
+ setupandlint:
    jobs:
-     - setup:
+     - setup
      - test:linters:
          requires:
            - setup
