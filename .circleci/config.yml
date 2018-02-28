@@ -67,12 +67,16 @@ jobs:
           name: Set JEST_JUNIT_OUTPUT
           command: echo 'export JEST_JUNIT_OUTPUT="results/junit-$CIRCLE_NODE_INDEX.xml"' >> $BASH_ENV
       - run:
+          name: Prepare Code Climate Test Reporter
+          command: |
+            ./cc-test-reporter before-build
+      - run:
           name: Run tests
           # split tests by timing and then run npm test
           command: |
             circleci tests glob "src/**/*.test.js" | circleci tests split --split-by=timings | \
             xargs npm test -- --testResultsProcessor="jest-junit"  --coverage
-      - run: 
+      - run:
           name: Format coverage
           command: |
             ./cc-test-reporter format-coverage --output coverage/codeclimate.$CIRCLE_NODE_INDEX.json
@@ -81,6 +85,8 @@ jobs:
           paths:
             - results
             - coverage
+            - cc-test-reporter
+          
   coverage:
     <<: *defaults
     steps:
