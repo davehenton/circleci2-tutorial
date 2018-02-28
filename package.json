@@ -1,0 +1,87 @@
+{
+  "name": "circleci2-tutorial",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0",
+    "react-scripts": "1.1.1"
+  },
+  "prettier": {
+    "bracketSpacing": true,
+    "jsxBracketSameLine": false,
+    "printWidth": 80,
+    "semi": true,
+    "singleQuote": false,
+    "tabWidth": 2,
+    "trailingComma": "none",
+    "useTabs": false
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "browserslist": [
+    "last 2 Chrome versions",
+    "last 2 ChromeAndroid versions",
+    "last 2 Safari versions",
+    "last 2 iOS versions",
+    "last 2 Firefox versions",
+    "IE 11",
+    "last 2 Edge versions",
+    "Firefox ESR"
+  ],
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "commit-msg": "commitlint -e $GIT_PARAMS"
+    }
+  },
+  "lint-staged": {
+    "*.js": [
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "jest-junit": {
+    "suiteName": "CircleCI 2.0 Tutorial",
+    "classNameTemplate": "{classname}",
+    "titleTemplate": "{title}",
+    "ancestorSeparator": " › ",
+    "usePathForSuiteName": "true"
+  },
+  "scripts": {
+    "build": "react-scripts build",
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
+    "eject": "react-scripts eject",
+    "format": "prettier --write 'src/**/*.{js,jsx}'",
+    "junit-merge": "junit-merge",
+    "lint-css": "stylelint 'src/**/*.css'",
+    "lint-js": "node ./node_modules/eslint/bin/eslint 'src'",
+    "preversion": "NODE_ENV=test CI=true npm-run-all --print-label lint-css lint-js test",
+    "start": "react-scripts start",
+    "test": "TZ=/usr/share/zoneinfo/America/New_York react-scripts test --env=jsdom",
+    "update-deps": "npm-check . --skip-unused -u",
+    "update-snapshots": "CI=true npm run test -- --updateSnapshot",
+    "version": "npm-run-all --print-label changelog update-snapshots && git add -A"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^6.1.2",
+    "conventional-changelog-cli": "^1.3.15",
+    "enzyme": "^3.3.0",
+    "enzyme-adapter-react-16": "^1.1.1",
+    "enzyme-to-json": "^3.3.1",
+    "eslint-config-prettier": "^2.9.0",
+    "eslint-plugin-prettier": "^2.6.0",
+    "husky": "^0.14.3",
+    "jest-junit": "^3.6.0",
+    "junit-merge": "^1.2.4",
+    "lint-staged": "^7.0.0",
+    "npm-run-all": "^4.1.2",
+    "prettier": "1.11.0",
+    "stylelint": "^9.1.1",
+    "stylelint-config-standard": "^18.1.0",
+    "stylelint-no-unsupported-browser-features": "^2.0.0"
+  }
+}
