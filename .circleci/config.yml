@@ -30,7 +30,7 @@ jobs:
           # and downloads it and sets the executable bit if it doesn't
           command: |
             curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-            chmod +x ./cc-test-reporter; fi
+            chmod +x ./cc-test-reporter
       - save_cache:
           name: Cache node_modules and Code Climate Test Reporter
           paths:
