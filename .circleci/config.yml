@@ -29,7 +29,8 @@ jobs:
           # inline BASH script that checks if the cc-test-reporter binary exists
           # and downloads it and sets the executable bit if it doesn't
           command: |
-            if [ ! -f cc-test-reporter ]; then curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter && chmod +x ./cc-test-reporter; fi
+            curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+            chmod +x ./cc-test-reporter; fi
       - save_cache:
           name: Cache node_modules and Code Climate Test Reporter
           paths:
@@ -148,20 +149,3 @@ workflows:
           filters:
             tags:
               ignore: /^v.*/
-
-  tagged-release:
-    jobs:
-      - setup:
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v.*/
-      - build:
-          requires:
-            - setup
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v.*/
